@@ -110,13 +110,17 @@ public extension Swifter {
                 safariView.modalPresentationStyle = .overFullScreen
                 presenting?.present(safariView, animated: true, completion: nil)
             } else {
-                UIApplication.shared.open(queryUrl, options: [:], completionHandler: nil)
+                if #available(iOS 10.0, *) {
+                    UIApplication.shared.open(queryUrl, options: [:], completionHandler: nil)
+                } else {
+                    UIApplication.shared.openURL(queryUrl)
+                }
             }
         }, failure: failure)
     }
     #endif
     
-    public class func handleOpenURL(_ url: URL, callbackURL: URL) -> Bool {
+    class func handleOpenURL(_ url: URL, callbackURL: URL) -> Bool {
         guard url.hasSameUrlScheme(as: callbackURL) else {
             return false
         }
