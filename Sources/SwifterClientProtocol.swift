@@ -54,4 +54,9 @@ public protocol SwifterClientProtocol {
                 success: HTTPRequest.SuccessHandler?,
                 failure: HTTPRequest.FailureHandler?) -> HTTPRequest
     
+    func signedRequest(path: String,
+                       baseURL: TwitterURL,
+                       method: HTTPMethodType,
+                       parameters: [String: Any],
+                       isMediaUpload: Bool) -> URLRequest
 }
