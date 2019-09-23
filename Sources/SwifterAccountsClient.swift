@@ -118,5 +118,31 @@ internal class AccountsClient: SwifterClientProtocol {
         return request
     }
     
+    func signedRequest(path: String,
+                       baseURL: TwitterURL,
+                       method: HTTPMethodType,
+                       parameters: [String : Any],
+                       isMediaUpload: Bool) -> URLRequest {
+        let url = URL(string: path, relativeTo: baseURL.url)
+        
+        let stringifiedParameters = parameters.stringifiedDictionary()
+        
+        let requestMethod: SLRequestMethod
+        switch method {
+        case .DELETE:
+            requestMethod = .DELETE
+        case .POST:
+            requestMethod = .POST
+        case .PUT:
+            requestMethod = .PUT
+        default:
+            requestMethod = .GET
+        }
+        let socialRequest = SLRequest(forServiceType: SLServiceTypeTwitter, requestMethod: requestMethod, url: url, parameters: stringifiedParameters)!
+        socialRequest.account = self.credential!.account!
+        
+        return socialRequest.preparedURLRequest()
+    }
+    
 }
 #endif

@@ -144,6 +144,19 @@ internal class OAuthClient: SwifterClientProtocol  {
         return request
     }
     
+    func signedRequest(path: String,
+                       baseURL: TwitterURL,
+                       method: HTTPMethodType,
+                       parameters: [String : Any],
+                       isMediaUpload: Bool) -> URLRequest {
+        let url = URL(string: path, relativeTo: baseURL.url)!
+        let authorizationHeader = self.authorizationHeader(for: method, url: url, parameters: [:], isMediaUpload: false)
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = method.rawValue
+        urlRequest.addValue(authorizationHeader, forHTTPHeaderField: "Authorization")
+        return urlRequest
+    }
+    
     func authorizationHeader(for method: HTTPMethodType, url: URL, parameters: [String: Any], isMediaUpload: Bool) -> String {
         var authorizationParameters = [String: Any]()
         authorizationParameters["oauth_version"] = OAuth.version

@@ -109,6 +109,22 @@ internal class AppOnlyClient: SwifterClientProtocol  {
         return request
     }
     
+    func signedRequest(path: String,
+                       baseURL: TwitterURL,
+                       method: HTTPMethodType,
+                       parameters: [String : Any],
+                       isMediaUpload: Bool) -> URLRequest {
+        let url = URL(string: path, relativeTo: baseURL.url)!
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        if let bearerToken = self.credential?.accessToken?.key {
+            request.addValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        }
+        
+        return request
+    }
+    
     class func base64EncodedCredentials(withKey key: String, secret: String) -> String {
         let encodedKey = key.urlEncodedString()
         let encodedSecret = secret.urlEncodedString()
