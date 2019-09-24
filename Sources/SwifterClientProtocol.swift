@@ -58,5 +58,6 @@ public protocol SwifterClientProtocol {
                        baseURL: TwitterURL,
                        method: HTTPMethodType,
                        parameters: [String: Any],
+                       encodeParameters: Bool,
                        isMediaUpload: Bool) -> URLRequest
 }
