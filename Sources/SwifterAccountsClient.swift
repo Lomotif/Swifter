@@ -122,6 +122,7 @@ internal class AccountsClient: SwifterClientProtocol {
                        baseURL: TwitterURL,
                        method: HTTPMethodType,
                        parameters: [String : Any],
+                       encodeParameters: Bool,
                        isMediaUpload: Bool) -> URLRequest {
         let url = URL(string: path, relativeTo: baseURL.url)
         
