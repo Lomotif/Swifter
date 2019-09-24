@@ -148,13 +148,38 @@ internal class OAuthClient: SwifterClientProtocol  {
                        baseURL: TwitterURL,
                        method: HTTPMethodType,
                        parameters: [String : Any],
+                       encodeParameters: Bool,
                        isMediaUpload: Bool) -> URLRequest {
         let url = URL(string: path, relativeTo: baseURL.url)!
-        let authorizationHeader = self.authorizationHeader(for: method, url: url, parameters: [:], isMediaUpload: false)
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = method.rawValue
-        urlRequest.addValue(authorizationHeader, forHTTPHeaderField: "Authorization")
-        return urlRequest
+        let authorizationHeader = self.authorizationHeader(for: method, url: url, parameters: parameters, isMediaUpload: isMediaUpload)
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.addValue(authorizationHeader, forHTTPHeaderField: "Authorization")
+        
+        let nonOAuthParameters = parameters.filter { key, _ in !key.hasPrefix("oauth_") }
+        if !nonOAuthParameters.isEmpty {
+            let charset = CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(dataEncoding.rawValue))!
+            if method == .GET || method == .HEAD || method == .DELETE {
+                let queryString = nonOAuthParameters.urlEncodedQueryString(using: self.dataEncoding)
+                request.url = url.append(queryString: queryString)
+                request.setValue("application/x-www-form-urlencoded; charset=\(charset)", forHTTPHeaderField: "Content-Type")
+            } else {
+                var queryString = ""
+                if encodeParameters {
+                    queryString = nonOAuthParameters.urlEncodedQueryString(using: self.dataEncoding)
+                    request.setValue("application/x-www-form-urlencoded; charset=\(charset)", forHTTPHeaderField: "Content-Type")
+                } else {
+                    queryString = nonOAuthParameters.queryString
+                }
+
+                if let data = queryString.data(using: self.dataEncoding) {
+                    request.setValue(String(data.count), forHTTPHeaderField: "Content-Length")
+                    request.httpBody = data
+                }
+            }
+        }
+        
+        return request
     }
     
     func authorizationHeader(for method: HTTPMethodType, url: URL, parameters: [String: Any], isMediaUpload: Bool) -> String {

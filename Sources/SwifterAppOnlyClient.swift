@@ -113,6 +113,7 @@ internal class AppOnlyClient: SwifterClientProtocol  {
                        baseURL: TwitterURL,
                        method: HTTPMethodType,
                        parameters: [String : Any],
+                       encodeParameters: Bool,
                        isMediaUpload: Bool) -> URLRequest {
         let url = URL(string: path, relativeTo: baseURL.url)!
         
@@ -120,6 +121,29 @@ internal class AppOnlyClient: SwifterClientProtocol  {
         request.httpMethod = method.rawValue
         if let bearerToken = self.credential?.accessToken?.key {
             request.addValue("Bearer \(bearerToken)", forHTTPHeaderField: "Authorization")
+        }
+        
+        let nonOAuthParameters = parameters.filter { key, _ in !key.hasPrefix("oauth_") }
+        if !nonOAuthParameters.isEmpty {
+            let charset = CFStringConvertEncodingToIANACharSetName(CFStringConvertNSStringEncodingToEncoding(dataEncoding.rawValue))!
+            if method == .GET || method == .HEAD || method == .DELETE {
+                let queryString = nonOAuthParameters.urlEncodedQueryString(using: self.dataEncoding)
+                request.url = url.append(queryString: queryString)
+                request.setValue("application/x-www-form-urlencoded; charset=\(charset)", forHTTPHeaderField: "Content-Type")
+            } else {
+                var queryString = ""
+                if encodeParameters {
+                    queryString = nonOAuthParameters.urlEncodedQueryString(using: self.dataEncoding)
+                    request.setValue("application/x-www-form-urlencoded; charset=\(charset)", forHTTPHeaderField: "Content-Type")
+                } else {
+                    queryString = nonOAuthParameters.queryString
+                }
+
+                if let data = queryString.data(using: self.dataEncoding) {
+                    request.setValue(String(data.count), forHTTPHeaderField: "Content-Length")
+                    request.httpBody = data
+                }
+            }
         }
         
         return request
