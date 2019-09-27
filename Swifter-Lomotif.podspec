@@ -1,6 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "Swifter-Lomotif"
+  s.module_name  = 'Swifter'
   s.version      = "2.3.1"
   s.summary      = ":bird: A Twitter framework for iOS & macOS written in Swift"
   s.description  = <<-DESC
